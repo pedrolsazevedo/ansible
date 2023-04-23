@@ -1,0 +1,47 @@
+- name: Install Azure CLI, Azure Storage Explorer, and AzCopy
+  hosts: localhost
+  become: true
+
+  vars:
+    azcopy_version: "10.12.0"
+    azcopy_download_url: "https://aka.ms/downloadazcopy-v10-linux"
+
+  tasks:
+    # Azure CLI
+    - name: Add the Azure CLI Microsoft package repository
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.asc] https://packages.microsoft.com/repos/azure-cli/ jammy main
+        state: present
+
+    - name: Install Azure CLI
+      ansible.builtin.apt:
+        name: azure-cli
+        state: present
+
+    # Azure Storage Explorer
+    - name: Install Azure Storage Explorer
+      become: true
+      ansible.builtin.apt:
+        name: snapd
+        state: present
+      tags:
+        - azure_storage_explorer
+
+    - name: Install Azure Storage Explorer via Snap
+      become: true
+      ansible.builtin.shell:
+        snap install storage-explorer
+      register: install_output
+      changed_when: "'done' in install_output.stdout"
+      tags:
+        - azure_storage_explorer
+
+    # AzCopy
+    - name: Download AzCopy
+      ansible.builtin.get_url:
+        url: "{{ azcopy_download_url }}"
+        dest: /tmp/azcopy.tar.gz
+        mode: '0755'
+
+    - name: Extract AzCopy
+      command: tar -xzf /tmp/azcopy.tar.gz -C /usr/local/bin/

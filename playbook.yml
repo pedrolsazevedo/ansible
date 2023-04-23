@@ -1,0 +1,150 @@
+- name: Install vim, wget, Docker, Visual Studio Code, Google Chrome, Homebrew.
+  hosts: localhost
+  become: true
+
+  vars:
+    current_user: "{{ linux_user }}"
+    homebrew_prefix: /home/linuxbrew/.linuxbrew
+    bashrc_path: /home/{{ current_user }}/.bashrc
+    brew_path: '{{ homebrew_prefix }}/bin/brew'
+    terraform_version: latest
+
+  tasks:
+    # Update system
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    # Install basic packages
+    - name: Install vim, wget, git
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vim
+        - wget
+        - git
+
+    # Configure the necessary keys for APT
+    - name: Configure Packages Keys
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: "{{ item.mode }}"
+        force: "{{ item.force }}"
+      loop:
+        - { url: 'https://download.docker.com/linux/ubuntu/gpg', dest: '/etc/apt/trusted.gpg.d/docker.asc', mode: '0644', force: true}
+        - { url: 'https://packages.microsoft.com/keys/microsoft.asc', dest: '/etc/apt/trusted.gpg.d/packages.microsoft.asc', mode: '0644', force: true}
+        - { url: 'https://dl.google.com/linux/linux_signing_key.pub', dest: '/etc/apt/trusted.gpg.d/google.asc', mode: '0644', force: true}
+
+
+    # Docker
+    - name: Install Docker dependencies
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable'
+        state: present
+        filename: docker
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+
+    # Visual Studio Code
+    - name: Add Visual Studio Code repository
+      ansible.builtin.apt_repository:
+        repo: 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.asc] https://packages.microsoft.com/repos/vscode stable main'
+        state: present
+        filename: vscode
+
+    - name: Install Visual Studio Code
+      ansible.builtin.apt:
+        name: code
+        state: present
+
+    # Google Chrome
+    - name: Add Google Chrome repository
+      ansible.builtin.apt_repository:
+        repo: 'deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main'
+        state: present
+
+    - name: Install Google Chrome
+      ansible.builtin.apt:
+        name: google-chrome-stable
+        state: present
+
+    # Homebrew
+    - name: Install Homebrew dependencies
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - build-essential
+        - curl
+        - file
+
+    # Download and install Homebrew
+    - name: Download and install Homebrew
+      become_user: "{{ current_user }}"
+      ansible.builtin.shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        executable: /bin/bash
+
+    - name: Add Homebrew to the PATH
+      ansible.builtin.lineinfile:
+        path: "{{ item.path }}"
+        line: "{{ item.line }}"
+        state: present
+        create: true
+      loop:
+        - { path: "/home/{{ current_user }}/.zshrc", line: 'eval "$({{ homebrew_prefix }}/bin/brew shellenv)"' }
+        - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$({{ homebrew_prefix }}/bin/brew shellenv)"' }
+
+    - name: Install TFENV
+      become_user: "{{ current_user }}"
+      environment:
+        PATH: "{{ brew_path }}:{{ ansible_env.PATH }}"
+      ansible.builtin.shell: |
+        {{ brew_path }} install tfenv
+
+    - name: Install latest terraform with TFENV
+      become_user: "{{ current_user }}"
+      environment:
+        PATH: "{{ lookup('env', 'PATH') }}:{{ ansible_env.HOME }}/.tfenv/bin"
+      ansible.builtin.shell: |
+        tfenv install {{ terraform_version }}
+        tfenv use {{ terraform_version }}
+
+    - name: Install npm and necessary dependencies
+      become: true
+      ansible.builtin.apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - npm
+          - nodejs
+
+    - name: Install commitizen-cli
+      become: true
+      ansible.builtin.npm:
+        name: commitizen
+        global: true

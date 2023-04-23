@@ -1,0 +1,54 @@
+- name: Install Kubectl, pass, Rancher Desktop and Podman Desktop
+  hosts: localhost
+  become: true
+
+  tasks:
+
+    # Podman-desktop
+    - name: Install Podman-Desktop
+      become: true
+      vars:
+        podman_desktop_repo_key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$(lsb_release -rs)/Release.key"
+        podman_desktop_repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_$(lsb_release -rs)/ /"
+
+      block:
+        - name: Install Podman
+          ansible.builtin.apt:
+            name: podman
+            state: present
+
+        - name: Add repository key
+          ansible.builtin.apt_key:
+            url: "{{ podman_desktop_repo_key }}"
+            state: present
+          register: key_result
+
+        - name: Add repository
+          ansible.builtin.apt_repository:
+            repo: "{{ podman_desktop_repo }}"
+            state: present
+            filename: podman-desktop
+            update_cache: true
+          when: key_result.changed
+
+        - name: Install Podman-Desktop
+          ansible.builtin.apt:
+            name: podman-desktop
+            state: present
+
+
+    # - name: Add Rancher Desktop repository key
+    #   ansible.builtin.apt_key:
+    #     url: https://releases.rancher.com/desktop/{{ ansible_distribution_release }}/keys.asc
+    #     state: present
+
+    # - name: Add Rancher Desktop repository
+    #   ansible.builtin.apt_repository:
+    #     repo: deb [arch=amd64 signed-by=/usr/share/keyrings/rancher-desktop-archive-keyring.gpg] https://releases.rancher.com/desktop/{{ ansible_distribution_release }}/stable
+    #     state: present
+    #     update_cache: true
+
+    # - name: Install Rancher Desktop
+    #   ansible.builtin.apt:
+    #     name: rancher-desktop
+    #     state: present
