@@ -1,5 +1,5 @@
 - name: Install Kubectl, pass, Rancher Desktop and Podman Desktop
-  hosts: localhost
+  hosts: local
   become: true
 
   tasks:
@@ -35,20 +35,3 @@
           ansible.builtin.apt:
             name: podman-desktop
             state: present
-
-
-    # - name: Add Rancher Desktop repository key
-    #   ansible.builtin.apt_key:
-    #     url: https://releases.rancher.com/desktop/{{ ansible_distribution_release }}/keys.asc
-    #     state: present
-
-    # - name: Add Rancher Desktop repository
-    #   ansible.builtin.apt_repository:
-    #     repo: deb [arch=amd64 signed-by=/usr/share/keyrings/rancher-desktop-archive-keyring.gpg] https://releases.rancher.com/desktop/{{ ansible_distribution_release }}/stable
-    #     state: present
-    #     update_cache: true
-
-    # - name: Install Rancher Desktop
-    #   ansible.builtin.apt:
-    #     name: rancher-desktop
-    #     state: present

@@ -1,13 +1,10 @@
-- name: Install vim, wget, Docker, Visual Studio Code, Google Chrome, Homebrew.
-  hosts: localhost
+- name: Install vim, wget, Docker, Visual Studio Code and Google Chrome.
+  hosts: local
   become: true
 
   vars:
     current_user: "{{ linux_user }}"
     homebrew_prefix: /home/linuxbrew/.linuxbrew
-    bashrc_path: /home/{{ current_user }}/.bashrc
-    brew_path: '{{ homebrew_prefix }}/bin/brew'
-    terraform_version: latest
 
   tasks:
     # Update system
@@ -24,6 +21,8 @@
         - vim
         - wget
         - git
+        - git-core
+        - python3-full
 
     # Configure the necessary keys for APT
     - name: Configure Packages Keys
@@ -36,7 +35,6 @@
         - { url: 'https://download.docker.com/linux/ubuntu/gpg', dest: '/etc/apt/trusted.gpg.d/docker.asc', mode: '0644', force: true}
         - { url: 'https://packages.microsoft.com/keys/microsoft.asc', dest: '/etc/apt/trusted.gpg.d/packages.microsoft.asc', mode: '0644', force: true}
         - { url: 'https://dl.google.com/linux/linux_signing_key.pub', dest: '/etc/apt/trusted.gpg.d/google.asc', mode: '0644', force: true}
-
 
     # Docker
     - name: Install Docker dependencies
@@ -67,6 +65,13 @@
         - docker-buildx-plugin
         - docker-compose-plugin
 
+    - name: Add the user to Docker group
+      become: true
+      ansible.builtin.user:
+        name: "{{ current_user }}"
+        groups: docker
+        append: true
+
     # Visual Studio Code
     - name: Add Visual Studio Code repository
       ansible.builtin.apt_repository:
@@ -90,6 +95,19 @@
         name: google-chrome-stable
         state: present
 
+- name: Install Homebrew, TFEnv and PyEnv.
+  hosts: local
+  become: true
+
+  vars:
+    current_user: "{{ linux_user }}"
+    homebrew_prefix: /home/linuxbrew/.linuxbrew
+    bashrc_path: /home/{{ current_user }}/.bashrc
+    brew_path: '{{ homebrew_prefix }}/bin/brew'
+    terraform_version: 'latest'
+    pyenv_py_ver: '3.10.11'
+
+  tasks:
     # Homebrew
     - name: Install Homebrew dependencies
       ansible.builtin.apt:
@@ -97,7 +115,6 @@
         state: present
       loop:
         - build-essential
-        - curl
         - file
 
     # Download and install Homebrew
@@ -105,8 +122,10 @@
       become_user: "{{ current_user }}"
       ansible.builtin.shell: |
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      args:
-        executable: /bin/bash
+      # args:
+      #   executable: /bin/bash
+      register: homebrew_install_output
+      changed_when: homebrew_install_output.rc != 0
 
     - name: Add Homebrew to the PATH
       ansible.builtin.lineinfile:
@@ -114,6 +133,7 @@
         line: "{{ item.line }}"
         state: present
         create: true
+        mode: "0644"
       loop:
         - { path: "/home/{{ current_user }}/.zshrc", line: 'eval "$({{ homebrew_prefix }}/bin/brew shellenv)"' }
         - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$({{ homebrew_prefix }}/bin/brew shellenv)"' }
@@ -122,8 +142,10 @@
       become_user: "{{ current_user }}"
       environment:
         PATH: "{{ brew_path }}:{{ ansible_env.PATH }}"
-      ansible.builtin.shell: |
+      ansible.builtin.command: |
         {{ brew_path }} install tfenv
+      register: tfenv_install_output
+      changed_when: tfenv_install_output.rc != 0
 
     - name: Install latest terraform with TFENV
       become_user: "{{ current_user }}"
@@ -132,19 +154,108 @@
       ansible.builtin.shell: |
         tfenv install {{ terraform_version }}
         tfenv use {{ terraform_version }}
+      register: tfenv_install_terraform_output
+      changed_when: tfenv_install_terraform_output.rc != 0
 
-    - name: Install npm and necessary dependencies
-      become: true
-      ansible.builtin.apt:
-        name: "{{ packages }}"
+    - name: Install pyenv and virtualenv
+      become_user: "{{ current_user }}"
+      environment:
+        PATH: "{{ brew_path }}:{{ ansible_env.PATH }}"
+      ansible.builtin.command: |
+        {{ brew_path }} install pyenv pyenv-virtualenv
+      register: pyenv_install_output
+      changed_when: tfenv_install_output.rc != 0
+
+    - name: Add PyEnv init commands to the PATH
+      ansible.builtin.lineinfile:
+        path: "{{ item.path }}"
+        line: "{{ item.line }}"
         state: present
-      vars:
-        packages:
-          - npm
-          - nodejs
+        create: true
+        mode: "0644"
+      loop:
+        - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$(pyenv init --path)"' }
+        - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$(pyenv virtualenv-init -)"' }
+
+    - name: Install and set PyEnv version {{ pyenv_py_ver }}
+      ansible.builtin.shell: |
+        pyenv install {{ pyenv_py_ver }}
+        pyenv global {{ pyenv_py_ver }}
+      register: pyenv_version_config_output
+      changed_when: pyenv_version_config_output.rc != 0
+
+    # - name: Install databricks-cli
+    #   ansible.builtin.shell: |
+    #     pip install databricks-cli
+    #   register: databricks_cli_install_output
+    #   changed_when: databricks_cli_install_output.rc != 0
+
+    # - name: Install databricks-cli
+    #   become: false
+    #   ansible.builtin.pip:
+    #     name: databricks-cli
+    #     version: "0.17.6"
+    #     state: present
+
+- name: Install NVM, Node and cz-cli.
+  hosts: local
+  become: false
+
+  vars:
+    nvm_version: 'v0.39.3'
+
+  tasks:
+    - name: Install NPM dependencies
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - libssl-dev
+        - file
+
+    - name: Download and install NVM
+      become: false
+      ansible.builtin.shell: |
+        #!/bin/bash
+        set -euo pipefail
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
+      args:
+        executable: /bin/bash
+        chdir: "$HOME"
+        creates: "$HOME/.nvm/nvm.sh"
+      register: nvm_install_output
+      changed_when: nvm_install_output.rc != 0
+
+    - name: Setup .profile
+      become: false
+      ansible.builtin.lineinfile:
+        path: ~/.profile
+        line: source ~/.nvm/nvm.sh
+        create: true
+        mode: "0644"
+
+    - name: Install node
+      ansible.builtin.shell: >
+        . {{ ansible_env.HOME }}/.nvm/nvm.sh && nvm install {{ item }}
+      args:
+        executable: /bin/bash
+        chdir: "{{ ansible_env.HOME }}"
+        creates: "{{ ansible_env.HOME }}/.nvm/versions/{{ item }}"
+      loop:
+        - 18.16.0
+      register: nvm_install_node_output
+      changed_when: nvm_install_node_output.rc != 0
+
+    - name: Verify that Node.js and NPM are installed
+      become: false
+      ansible.builtin.shell: |
+        node --version
+        npm --version
+      register: nvm_install_node
+      changed_when: nvm_install_node.rc != 0
 
     - name: Install commitizen-cli
-      become: true
-      ansible.builtin.npm:
+      become: false
+      community.general.npm:
         name: commitizen
         global: true
