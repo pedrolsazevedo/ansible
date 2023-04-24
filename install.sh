@@ -1,10 +1,13 @@
 #!/bin/bash
 
 # Define Gum style colors
-GUM_YELLOW='\033[1;33m'
-GUM_GREEN='\033[1;32m'
-GUM_BLUE='\033[1;34m'
-GUM_RESET='\033[0m'
+gum_style_defition(){
+    GUM_YELLOW='\033[1;33m'
+    GUM_GREEN='\033[1;32m'
+    GUM_BLUE='\033[1;34m'
+    GUM_RESET='\033[0m'
+}
+
 
 check_requirements() {
     declare -a packages=("python3" "ansible" "python3-pip" "ansible-lint")
@@ -130,6 +133,8 @@ git_configuration() {
     echo -e "${GUM_GREEN}✅ Git and SSH configuration complete${GUM_RESET}"
 }
 
+
+gum_style_defition
 check_requirements
 ansible_configuration
 run_playbooks

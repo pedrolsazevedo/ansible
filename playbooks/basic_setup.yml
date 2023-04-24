@@ -122,8 +122,6 @@
       become_user: "{{ current_user }}"
       ansible.builtin.shell: |
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      # args:
-      #   executable: /bin/bash
       register: homebrew_install_output
       changed_when: homebrew_install_output.rc != 0
 
@@ -166,18 +164,64 @@
       register: pyenv_install_output
       changed_when: tfenv_install_output.rc != 0
 
-    - name: Add PyEnv init commands to the PATH
-      ansible.builtin.lineinfile:
-        path: "{{ item.path }}"
-        line: "{{ item.line }}"
-        state: present
-        create: true
-        mode: "0644"
-      loop:
-        - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$(pyenv init --path)"' }
-        - { path: "/home/{{ current_user }}/.bashrc", line: 'eval "$(pyenv virtualenv-init -)"' }
+    - name: Add PyEnv Shell
+      vars:
+        pyenv_shell_env:
+          - 'export PYENV_ROOT="$HOME/.pyenv"'
+          - 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"'
+          - 'eval "$(pyenv init -)"'
+          - 'eval "$(pyenv virtualenv-init -)"'
+        profile_files:
+          - "/home/{{ current_user }}/.bashrc"
+          - "/home/{{ current_user }}/.profile"
+          - "/home/{{ current_user }}/.bash_profile"
+      when: existing_file_contents | success
+      block:
+        - name: Read the current shell configuration
+          ansible.builtin.slurp:
+            src: "{{ item }}"
+          register: existing_file_contents
+          become: true
+          become_user: root
+          ignore_errors: true
+
+        - name: Check if Configuration already exists
+          ansible.builtin.set_fact:
+            lines_already_exist: "{{ existing_file_contents.content | b64decode | split('\n') | intersect(pyenv_shell_env) }}"
+
+        - name: Add configuration if not present
+          ansible.builtin.lineinfile:
+            dest: "{{ item }}"
+            line: "{{ item_line }}"
+            state: present
+            create: true
+            insertafter: EOF
+            mode: "0644"
+
+          loop: "{{ profile_files }}"
+
+          loop_control:
+            label: "{{ item }}"
+
+          vars:
+            item_line: "{{ pyenv_shell_env | difference(lines_already_exist) | join('\n') }}"
+
+
+    # - name: Add PyEnv init commands to the PATH
+    #   ansible.builtin.lineinfile:
+    #     path: "/home/{{ current_user }}/.bashrc"
+    #     line: "{{ item }}"
+    #     state: present
+    #     create: true
+    #     mode: "0644"
+    #   loop:
+    #     - 'export PYENV_ROOT="$HOME/.pyenv"'
+    #     - 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"'
+    #     - 'eval "$(pyenv init -)"'
+    #     - 'eval "$(pyenv virtualenv-init -)"'
 
     - name: Install and set PyEnv version {{ pyenv_py_ver }}
+      become: true
       ansible.builtin.shell: |
         pyenv install {{ pyenv_py_ver }}
         pyenv global {{ pyenv_py_ver }}
