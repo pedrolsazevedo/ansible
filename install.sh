@@ -129,7 +129,7 @@ git_configuration() {
     else
         echo -e "${GUM_GREEN}✉️  Git user email already configured${GUM_RESET}"
     fi
-
+    git config --global --add --bool push.autoSetupRemote true
     echo -e "${GUM_GREEN}✅ Git and SSH configuration complete${GUM_RESET}"
 }
 
