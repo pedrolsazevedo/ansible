@@ -1,3 +1,9 @@
+## 0.3.0 (2026-03-13)
+
+### Feat
+
+- Onboard Openssl and OCI files
+
 ## 0.2.1 (2026-03-13)
 
 ### Fix
