@@ -8,7 +8,7 @@ terraform_version: latest
 pyenv_python_version: "3.12.13"
 nvm_version: v0.40.4
 node_versions:
-  - "22.22.1"
+  - "24.14.0"
   - "20.20.1"
 
 # Container Tools
