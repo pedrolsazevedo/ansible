@@ -1,0 +1,16 @@
+---
+- name: Install tfenv via Homebrew
+  become: false
+  community.general.homebrew:
+    name: tfenv
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+
+- name: Install Terraform with tfenv
+  become: false
+  ansible.builtin.shell: |
+    {{ homebrew_prefix }}/bin/tfenv install {{ terraform_version }}
+    {{ homebrew_prefix }}/bin/tfenv use {{ terraform_version }}
+  args:
+    creates: "{{ ansible_env.HOME }}/.tfenv/versions/{{ terraform_version }}"
+  when: terraform_version != 'latest'

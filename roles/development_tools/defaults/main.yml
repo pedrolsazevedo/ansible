@@ -1,0 +1,13 @@
+---
+basic_packages:
+  - vim
+  - wget
+  - git
+  - git-core
+  - python3-full
+
+vscode_gpg_key: https://packages.microsoft.com/keys/microsoft.asc
+vscode_repo: "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.asc] https://packages.microsoft.com/repos/vscode stable main"
+
+chrome_gpg_key: https://dl.google.com/linux/linux_signing_key.pub
+chrome_repo: "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main"

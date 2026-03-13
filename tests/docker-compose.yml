@@ -1,0 +1,24 @@
+---
+services:
+  ubuntu2404:
+    image: geerlingguy/docker-ubuntu2404-ansible:latest
+    container_name: ansible-test-ubuntu2404
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - ..:/ansible:ro
+    command: /lib/systemd/systemd
+    tmpfs:
+      - /run
+      - /run/lock
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    cgroup: host
+    networks:
+      - ansible_test
+
+networks:
+  ansible_test:
+    driver: bridge

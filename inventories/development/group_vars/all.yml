@@ -1,0 +1,3 @@
+---
+linux_user: "{{ lookup('env', 'USER') }}"
+homebrew_prefix: /home/linuxbrew/.linuxbrew

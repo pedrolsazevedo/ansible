@@ -1,0 +1,16 @@
+---
+- name: Download Rancher Desktop
+  ansible.builtin.get_url:
+    url: "{{ rancher_desktop_url }}"
+    dest: /tmp/rancher-desktop.deb
+    mode: '0644'
+
+- name: Install Rancher Desktop
+  ansible.builtin.apt:
+    deb: /tmp/rancher-desktop.deb
+    state: present
+
+- name: Clean up installer
+  ansible.builtin.file:
+    path: /tmp/rancher-desktop.deb
+    state: absent

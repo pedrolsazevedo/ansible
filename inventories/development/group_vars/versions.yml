@@ -1,0 +1,43 @@
+---
+# Version management for all roles
+# Update versions here instead of individual role defaults
+
+# Package Managers
+terraform_version: latest
+pyenv_python_version: "3.12.13"
+nvm_version: v0.40.4
+node_versions:
+  - "22.22.1"
+  - "20.20.1"
+
+# Container Tools
+kubectl_version: "v1.35.2"
+kind_version: "v0.25.0"
+rancher_desktop_version: "1.16.0"
+
+# System packages (used by system_prep role)
+system_packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - htop
+  - apt-transport-https
+  - ca-certificates
+  - rsync
+  - openssh-client
+  - build-essential
+  - software-properties-common
+  - yq
+  - jq
+  - dnsutils
+
+# Feature flags
+upgrade_packages: false
+install_storage_explorer: true
+install_azcopy: true
+install_podman: true
+install_podman_desktop: false
+install_kubectl: true
+install_helm: true
+install_kind: true

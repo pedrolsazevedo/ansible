@@ -1,0 +1,54 @@
+---
+- name: Configure Azure CLI repository key
+  ansible.builtin.get_url:
+    url: "{{ azure_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/packages.microsoft.asc
+    mode: '0644'
+    force: true
+
+- name: Add Azure CLI repository
+  ansible.builtin.apt_repository:
+    repo: "{{ azure_cli_repo }}"
+    state: present
+    filename: azure-cli
+    update_cache: true
+
+- name: Install Azure CLI
+  ansible.builtin.apt:
+    name: azure-cli
+    state: present
+
+- name: Install snapd for Azure Storage Explorer
+  ansible.builtin.apt:
+    name: snapd
+    state: present
+  when: install_storage_explorer | bool
+
+- name: Install Azure Storage Explorer
+  community.general.snap:
+    name: storage-explorer
+    state: present
+  when: install_storage_explorer | bool
+
+- name: Download AzCopy
+  ansible.builtin.get_url:
+    url: "{{ azcopy_url }}"
+    dest: /tmp/azcopy.tar.gz
+    mode: '0755'
+  when: install_azcopy | bool
+
+- name: Extract AzCopy
+  ansible.builtin.unarchive:
+    src: /tmp/azcopy.tar.gz
+    dest: /tmp/
+    remote_src: true
+    creates: /usr/local/bin/azcopy
+  when: install_azcopy | bool
+
+- name: Move AzCopy to bin
+  ansible.builtin.shell: |
+    cp /tmp/azcopy_linux_amd64_*/azcopy /usr/local/bin/
+    chmod +x /usr/local/bin/azcopy
+  args:
+    creates: /usr/local/bin/azcopy
+  when: install_azcopy | bool

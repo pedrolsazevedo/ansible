@@ -1,0 +1,26 @@
+---
+- name: Download and install mise
+  ansible.builtin.shell: |
+    curl https://mise.run | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/mise"
+  become: false
+
+- name: Create symlink to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.local/bin/mise"
+    dest: "{{ mise_install_path }}"
+    state: link
+  when: mise_install_path != ansible_env.HOME + '/.local/bin/mise'
+
+- name: Add mise to shell profiles
+  become: false
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    line: 'eval "$(~/.local/bin/mise activate bash)"'
+    state: present
+    create: true
+    mode: '0644'
+  loop:
+    - .bashrc
+    - .profile

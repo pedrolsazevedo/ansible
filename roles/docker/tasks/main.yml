@@ -1,0 +1,33 @@
+---
+- name: Configure Docker GPG key
+  ansible.builtin.get_url:
+    url: "{{ docker_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    mode: '0644'
+    force: true
+
+- name: Install Docker dependencies
+  ansible.builtin.apt:
+    name: "{{ docker_dependencies }}"
+    state: present
+    update_cache: true
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_repo }}"
+    state: present
+    filename: docker
+    update_cache: true
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+  notify: Restart Docker
+
+- name: Add user to Docker group
+  ansible.builtin.user:
+    name: "{{ linux_user }}"
+    groups: docker
+    append: true
+  notify: Reload user groups

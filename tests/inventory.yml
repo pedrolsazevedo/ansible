@@ -1,0 +1,10 @@
+---
+all:
+  children:
+    test_hosts:
+      hosts:
+        ubuntu2404:
+          ansible_connection: docker
+          ansible_host: ansible-test-ubuntu2404
+          ansible_user: root
+          ansible_python_interpreter: /usr/bin/python3

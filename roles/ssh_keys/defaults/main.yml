@@ -1,0 +1,5 @@
+---
+ssh_key_type: ed25519
+ssh_key_size: 4096
+ssh_key_comment: "{{ ansible_user_id }}@{{ ansible_hostname }}"
+ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"

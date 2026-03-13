@@ -1,0 +1,7 @@
+---
+azure_gpg_key: https://packages.microsoft.com/keys/microsoft.asc
+azure_cli_repo: "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.asc] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+azcopy_url: https://aka.ms/downloadazcopy-v10-linux
+
+install_storage_explorer: true
+install_azcopy: true

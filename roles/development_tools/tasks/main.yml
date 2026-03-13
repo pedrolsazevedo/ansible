@@ -1,0 +1,43 @@
+---
+- name: Install basic packages
+  ansible.builtin.apt:
+    name: "{{ basic_packages }}"
+    state: present
+
+- name: Configure VS Code GPG key
+  ansible.builtin.get_url:
+    url: "{{ vscode_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/packages.microsoft.asc
+    mode: '0644'
+    force: true
+
+- name: Add VS Code repository
+  ansible.builtin.apt_repository:
+    repo: "{{ vscode_repo }}"
+    state: present
+    filename: vscode
+    update_cache: true
+
+- name: Configure Chrome GPG key
+  ansible.builtin.get_url:
+    url: "{{ chrome_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/google.asc
+    mode: '0644'
+    force: true
+
+- name: Add Chrome repository
+  ansible.builtin.apt_repository:
+    repo: "{{ chrome_repo }}"
+    state: present
+    filename: google-chrome
+    update_cache: true
+
+- name: Install VS Code
+  ansible.builtin.apt:
+    name: code
+    state: present
+
+- name: Install Chrome
+  ansible.builtin.apt:
+    name: google-chrome-stable
+    state: present

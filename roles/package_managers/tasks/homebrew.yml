@@ -1,0 +1,30 @@
+---
+- name: Install Homebrew dependencies
+  ansible.builtin.apt:
+    name: "{{ homebrew_dependencies }}"
+    state: present
+
+- name: Check if Homebrew is installed
+  ansible.builtin.stat:
+    path: "{{ homebrew_prefix }}/bin/brew"
+  register: brew_installed
+
+- name: Install Homebrew
+  become: false
+  ansible.builtin.shell: |
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  args:
+    creates: "{{ homebrew_prefix }}/bin/brew"
+  when: not brew_installed.stat.exists
+
+- name: Add Homebrew to shell profiles
+  become: false
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    line: 'eval "$({{ homebrew_prefix }}/bin/brew shellenv)"'
+    state: present
+    create: true
+    mode: '0644'
+  loop:
+    - .bashrc
+    - .zshrc

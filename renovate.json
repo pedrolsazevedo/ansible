@@ -1,0 +1,85 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": ["dependencies"],
+  "assignees": ["@me"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "schedule": ["before 6am on monday"],
+  "timezone": "America/Sao_Paulo",
+  "packageRules": [
+    {
+      "description": "Ansible versions in group_vars/versions.yml",
+      "matchFileNames": ["inventories/development/group_vars/versions.yml"],
+      "matchManagers": ["regex"],
+      "enabled": true
+    },
+    {
+      "description": "Group all Ansible role updates",
+      "matchFileNames": ["roles/**/defaults/main.yml"],
+      "groupName": "ansible-roles",
+      "automerge": false
+    },
+    {
+      "description": "Auto-merge minor and patch updates",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
+      "matchStrings": [
+        "kubectl_version:\\s*\"v(?<currentValue>.*?)\"",
+        "kind_version:\\s*\"v(?<currentValue>.*?)\"",
+        "rancher_desktop_version:\\s*\"(?<currentValue>.*?)\"",
+        "pyenv_python_version:\\s*\"(?<currentValue>.*?)\"",
+        "nvm_version:\\s*v(?<currentValue>.*)",
+        "node_versions:\\s*-\\s*\"(?<currentValue>.*?)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": {
+        "kubectl_version": "kubernetes/kubernetes",
+        "kind_version": "kubernetes-sigs/kind",
+        "rancher_desktop_version": "rancher-sandbox/rancher-desktop",
+        "nvm_version": "nvm-sh/nvm"
+      },
+      "versioningTemplate": "semver"
+    },
+    {
+      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
+      "matchStrings": [
+        "pyenv_python_version:\\s*\"(?<currentValue>.*?)\""
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "python/cpython",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
+      "matchStrings": [
+        "node_versions:\\s*-\\s*\"(?<currentValue>.*?)\""
+      ],
+      "datasourceTemplate": "node-version",
+      "depNameTemplate": "node",
+      "versioningTemplate": "node"
+    }
+  ],
+  "ansible": {
+    "enabled": true,
+    "fileMatch": [
+      "(^|/)requirements\\.ya?ml$",
+      "(^|/)galaxy\\.ya?ml$"
+    ]
+  },
+  "docker": {
+    "enabled": true,
+    "fileMatch": [
+      "^tests/docker-compose\\.yml$",
+      "^tests/Dockerfile$"
+    ]
+  }
+}

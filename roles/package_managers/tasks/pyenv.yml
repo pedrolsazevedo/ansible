@@ -1,0 +1,35 @@
+---
+- name: Install pyenv via Homebrew
+  become: false
+  community.general.homebrew:
+    name:
+      - pyenv
+      - pyenv-virtualenv
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+
+- name: Add pyenv to shell profiles
+  become: false
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    block: |
+      export PYENV_ROOT="$HOME/.pyenv"
+      command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+      eval "$(pyenv init -)"
+      eval "$(pyenv virtualenv-init -)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - PYENV"
+    create: true
+    mode: '0644'
+  loop:
+    - .bashrc
+    - .profile
+
+- name: Install Python version with pyenv
+  become: false
+  ansible.builtin.shell: |
+    export PATH="{{ homebrew_prefix }}/bin:$PATH"
+    eval "$({{ homebrew_prefix }}/bin/pyenv init -)"
+    {{ homebrew_prefix }}/bin/pyenv install -s {{ pyenv_python_version }}
+    {{ homebrew_prefix }}/bin/pyenv global {{ pyenv_python_version }}
+  args:
+    creates: "{{ ansible_env.HOME }}/.pyenv/versions/{{ pyenv_python_version }}"

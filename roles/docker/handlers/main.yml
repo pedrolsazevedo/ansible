@@ -1,0 +1,9 @@
+---
+- name: Restart Docker
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+    enabled: true
+
+- name: Reload user groups
+  ansible.builtin.meta: reset_connection

@@ -1,0 +1,25 @@
+---
+- name: Ensure .ssh directory exists
+  become: false
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Generate SSH key pair (ed25519)
+  become: false
+  community.crypto.openssh_keypair:
+    path: "{{ ssh_key_path }}"
+    type: "{{ ssh_key_type }}"
+    comment: "{{ ssh_key_comment }}"
+    state: present
+
+- name: Display public key
+  become: false
+  ansible.builtin.slurp:
+    src: "{{ ssh_key_path }}.pub"
+  register: ssh_public_key
+
+- name: Show SSH public key
+  ansible.builtin.debug:
+    msg: "{{ ssh_public_key.content | b64decode }}"

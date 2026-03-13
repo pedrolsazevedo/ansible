@@ -1,0 +1,17 @@
+---
+system_packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - htop
+  - apt-transport-https
+  - ca-certificates
+  - rsync
+  - openssh-client
+  - build-essential
+  - software-properties-common
+  - open-iscsi
+  - nfs-common
+
+upgrade_packages: false

@@ -1,0 +1,15 @@
+---
+install_podman: true
+install_podman_desktop: false
+install_kubectl: true
+install_helm: true
+install_kind: true
+
+podman_desktop_key_url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+podman_desktop_repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+kubectl_url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+kubectl_version: "v1.35.2"
+helm_gpg_key: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
+helm_repo: "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
+kind_version: "v0.25.0"
+kind_url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-amd64"
