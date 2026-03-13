@@ -27,7 +27,7 @@ jobs:
   renovate:
     name: Renovate Dependencies
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

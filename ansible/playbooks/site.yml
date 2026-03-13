@@ -1,0 +1,31 @@
+---
+- name: Setup development workstation
+  hosts: workstations
+  become: true
+  vars_files:
+    - ../vars/versions.yml
+
+  roles:
+    - role: system_prep
+      tags: [system, prep, always]
+
+    - role: development_tools
+      tags: [dev_tools, basic]
+
+    - role: docker
+      tags: [docker, containers]
+
+    - role: package_managers
+      tags: [package_managers, homebrew, pyenv, nvm, tfenv, mise]
+
+    - role: azure
+      tags: [azure, cloud]
+
+    - role: containers
+      tags: [containers, kubectl, podman]
+
+    - role: rancher_desktop
+      tags: [rancher, desktop, containers]
+
+    - role: ssh_keys
+      tags: [ssh, security]

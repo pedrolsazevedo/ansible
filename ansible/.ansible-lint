@@ -1,0 +1,7 @@
+---
+skip_list:
+  - var-naming[no-role-prefix]  # Project uses different naming convention
+  - yaml[line-length]  # Some URLs exceed 160 chars
+
+exclude_paths:
+  - kubernetes/

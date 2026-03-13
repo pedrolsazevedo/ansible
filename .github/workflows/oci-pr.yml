@@ -1,0 +1,23 @@
+name: OCI PR
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'oci/**'
+      - '.github/workflows/oci-pr.yml'
+
+jobs:
+  test_build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oci
+    strategy:
+      matrix:
+        image: [alpine, ubuntu, ubi, suse, node, oraclelinux, openssl]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Test build ${{ matrix.image }}
+        run: make test IMAGE=${{ matrix.image }}

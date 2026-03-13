@@ -1,0 +1,13 @@
+ignored:
+  - DL3007  # Using latest tag - intentional, Renovate manages updates
+  - DL3008  # Pin versions in apt - dev images use latest packages
+  - DL3018  # Pin versions in apk - dev images use latest packages
+  - DL3037  # Pin versions in zypper - dev images use latest packages
+  - DL3041  # Pin versions in dnf - dev images use latest packages
+  - DL3059  # Multiple consecutive RUN - readability over layer optimization
+  - DL3002  # Last USER should not be root - dev images need root
+  - DL3009  # Delete apt lists - not needed for dev images
+  - DL3015  # --no-install-recommends - dev images want full packages
+  - DL3036  # zypper clean missing - dev images
+  - DL3040  # dnf clean all missing - dev images
+  - SC2016  # Single quotes intentional for shell profile entries

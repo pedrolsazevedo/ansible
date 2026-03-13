@@ -1,0 +1,27 @@
+ARG ALPINE_VERSION=latest
+FROM alpine:${ALPINE_VERSION}
+
+ARG OPENSSL_VERSION
+
+LABEL org.label-schema.version="${OPENSSL_VERSION}" \
+      org.label-schema.description="OpenSSL on Alpine ${ALPINE_VERSION}"
+
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    ${OPENSSL_VERSION:+openssl=${OPENSSL_VERSION}} \
+    ${OPENSSL_VERSION:-openssl} \
+    curl \
+    git \
+    vim \
+    wget \
+    unzip \
+    gnupg \
+    bind-tools \
+    whois \
+    bash \
+    build-base \
+    && rm -rf /var/cache/apk/*
+
+COPY build/README-openssl.md /README.md
+
+CMD [ "bash" ]

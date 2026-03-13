@@ -1,0 +1,96 @@
+# Istio deployment test
+# Deploys httpbin + sleep with sidecar injection, a Gateway, and a VirtualService.
+#
+# Usage:
+#   kubectl apply -f manifests/examples/istio-test.yaml
+#
+# Verify:
+#   # Both pods should show 2/2 containers (app + istio-proxy)
+#   kubectl get pods -n istio-test
+#
+#   # Access via browser or curl
+#   curl http://localhost/get
+#   curl http://localhost/headers   # shows Envoy headers
+#
+#   # Request from sleep to httpbin via the mesh
+#   kubectl exec -n istio-test deploy/sleep -- curl -s http://httpbin:8000/get | head -5
+#
+# Cleanup:
+#   kubectl delete -f manifests/examples/istio-test.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-test
+  labels:
+    istio-injection: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+  namespace: istio-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      containers:
+        - name: httpbin
+          image: kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  namespace: istio-test
+spec:
+  selector:
+    app: httpbin
+  ports:
+    - port: 8000
+      targetPort: 80
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: httpbin
+  namespace: istio-test
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - istio-ingress/default-gateway
+  http:
+    - route:
+        - destination:
+            host: httpbin
+            port:
+              number: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sleep
+  namespace: istio-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleep
+  template:
+    metadata:
+      labels:
+        app: sleep
+    spec:
+      containers:
+        - name: sleep
+          image: curlimages/curl
+          command: ["sleep", "infinity"]

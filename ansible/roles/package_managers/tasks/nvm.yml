@@ -1,0 +1,43 @@
+---
+- name: Install NVM dependencies
+  ansible.builtin.apt:
+    name: "{{ nvm_dependencies }}"
+    state: present
+
+- name: Download NVM installer
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh
+    dest: /tmp/nvm-install.sh
+    mode: '0755'
+  become: false
+
+- name: Install NVM
+  ansible.builtin.command: /tmp/nvm-install.sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  become: false
+
+- name: Add NVM to profile
+  become: false
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.profile"
+    line: source ~/.nvm/nvm.sh
+    create: true
+    mode: '0644'
+
+- name: Install Node.js versions
+  become: false
+  ansible.builtin.shell: |
+    . {{ ansible_env.HOME }}/.nvm/nvm.sh && nvm install {{ item }}
+  args:
+    creates: "{{ ansible_env.HOME }}/.nvm/versions/node/v{{ item }}"
+  loop: "{{ node_versions }}"
+
+- name: Install commitizen globally
+  become: false
+  ansible.builtin.shell: |
+    export PATH="{{ ansible_env.HOME }}/.local/share/mise/installs/node/{{ node_versions[0] }}/bin:$PATH"
+    npm install -g commitizen
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/node/{{ node_versions[0] }}/bin/cz"

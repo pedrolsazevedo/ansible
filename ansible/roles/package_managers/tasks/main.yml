@@ -1,0 +1,20 @@
+---
+- name: Install Homebrew
+  ansible.builtin.import_tasks: homebrew.yml
+  tags: homebrew
+
+- name: Install mise
+  ansible.builtin.import_tasks: mise.yml
+  tags: mise
+
+- name: Install tfenv
+  ansible.builtin.import_tasks: tfenv.yml
+  tags: tfenv
+
+- name: Install pyenv
+  ansible.builtin.import_tasks: pyenv.yml
+  tags: pyenv
+
+- name: Install nvm
+  ansible.builtin.import_tasks: nvm.yml
+  tags: nvm

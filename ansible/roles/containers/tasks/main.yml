@@ -1,0 +1,79 @@
+---
+- name: Install Podman
+  ansible.builtin.apt:
+    name: podman
+    state: present
+  when: install_podman | bool
+
+- name: Add Podman Desktop repository key
+  ansible.builtin.apt_key:
+    url: "{{ podman_desktop_key_url }}"
+    state: present
+  when: install_podman_desktop | bool
+
+- name: Add Podman Desktop repository
+  ansible.builtin.apt_repository:
+    repo: "{{ podman_desktop_repo }}"
+    state: present
+    filename: podman-desktop
+    update_cache: true
+  when: install_podman_desktop | bool
+
+- name: Install Podman Desktop
+  ansible.builtin.apt:
+    name: podman-desktop
+    state: present
+  when: install_podman_desktop | bool
+
+- name: Install kubectl
+  ansible.builtin.get_url:
+    url: "{{ kubectl_url }}"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+  when: install_kubectl | bool
+
+- name: Install Helm dependencies
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
+    state: present
+  when: install_helm | bool
+
+- name: Download Helm GPG key
+  ansible.builtin.get_url:
+    url: "{{ helm_gpg_key }}"
+    dest: /tmp/helm.gpg
+    mode: '0644'
+  when: install_helm | bool
+
+- name: Dearmor and install Helm GPG key
+  ansible.builtin.shell: |
+    set -o pipefail
+    gpg --dearmor < /tmp/helm.gpg | tee /usr/share/keyrings/helm.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/helm.gpg
+    executable: /bin/bash
+  when: install_helm | bool
+
+- name: Add Helm repository
+  ansible.builtin.apt_repository:
+    repo: "{{ helm_repo }}"
+    state: present
+    filename: helm-stable-debian
+    update_cache: true
+  when: install_helm | bool
+
+- name: Install Helm
+  ansible.builtin.apt:
+    name: helm
+    state: present
+  when: install_helm | bool
+
+- name: Install kind
+  ansible.builtin.get_url:
+    url: "{{ kind_url }}"
+    dest: /usr/local/bin/kind
+    mode: '0755'
+  when: install_kind | bool

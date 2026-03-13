@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storage-test-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-test
+  labels:
+    app: storage-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-test
+  template:
+    metadata:
+      labels:
+        app: storage-test
+    spec:
+      containers:
+        - name: test-container
+          image: busybox:latest
+          command:
+            [
+              "sh",
+              "-c",
+              'echo "Testing storage" > /data/test.txt && tail -f /dev/null',
+            ]
+          volumeMounts:
+            - name: storage-volume
+              mountPath: /data
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: storage-test-pvc

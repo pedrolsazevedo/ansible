@@ -1,0 +1,4 @@
+---
+# Role-specific defaults only
+# Version management is in vars/versions.yml
+mise_install_path: /usr/local/bin/mise

@@ -1,0 +1,25 @@
+global:
+  proxy:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+pilot:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+telemetry:
+  enabled: false
+  v2:
+    enabled: false
+    prometheus:
+      enabled: false

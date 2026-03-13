@@ -11,14 +11,26 @@
   "timezone": "America/Sao_Paulo",
   "packageRules": [
     {
-      "description": "Ansible versions in group_vars/versions.yml",
-      "matchFileNames": ["inventories/development/group_vars/versions.yml"],
-      "matchManagers": ["regex"],
+      "description": "Pin Docker image digests",
+      "matchCategories": ["docker"],
+      "pinDigests": true,
+      "separateMinorPatch": true,
+      "separateMajorMinor": true
+    },
+    {
+      "matchCategories": ["docker"],
+      "matchFileNames": ["ansible/tests/docker-compose.yml", "ansible/tests/Dockerfile"],
+      "enabled": true
+    },
+    {
+      "description": "Ansible versions in vars/versions.yml",
+      "matchFileNames": ["ansible/vars/versions.yml"],
+      "matchManagers": ["custom.regex"],
       "enabled": true
     },
     {
       "description": "Group all Ansible role updates",
-      "matchFileNames": ["roles/**/defaults/main.yml"],
+      "matchFileNames": ["ansible/roles/**/defaults/main.yml"],
       "groupName": "ansible-roles",
       "automerge": false
     },
@@ -27,59 +39,66 @@
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "automergeType": "pr"
-    }
-  ],
-  "regexManagers": [
-    {
-      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
-      "matchStrings": [
-        "kubectl_version:\\s*\"v(?<currentValue>.*?)\"",
-        "kind_version:\\s*\"v(?<currentValue>.*?)\"",
-        "rancher_desktop_version:\\s*\"(?<currentValue>.*?)\"",
-        "pyenv_python_version:\\s*\"(?<currentValue>.*?)\"",
-        "nvm_version:\\s*v(?<currentValue>.*)",
-        "node_versions:\\s*-\\s*\"(?<currentValue>.*?)\""
-      ],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": {
-        "kubectl_version": "kubernetes/kubernetes",
-        "kind_version": "kubernetes-sigs/kind",
-        "rancher_desktop_version": "rancher-sandbox/rancher-desktop",
-        "nvm_version": "nvm-sh/nvm"
-      },
-      "versioningTemplate": "semver"
     },
     {
-      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
-      "matchStrings": [
-        "pyenv_python_version:\\s*\"(?<currentValue>.*?)\""
-      ],
+      "description": "OCI base image updates",
+      "matchFileNames": ["oci/build/**"],
+      "matchCategories": ["docker"],
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["kubectl_version:\\s*\"v(?<currentValue>.*?)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes/kubernetes"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["kind_version:\\s*\"v(?<currentValue>.*?)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/kind"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["rancher_desktop_version:\\s*\"(?<currentValue>.*?)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "rancher-sandbox/rancher-desktop"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["nvm_version:\\s*v(?<currentValue>.*)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "nvm-sh/nvm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["pyenv_python_version:\\s*\"(?<currentValue>.*?)\""],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "python/cpython",
       "extractVersionTemplate": "^v(?<version>.*)$"
     },
     {
-      "fileMatch": ["^inventories/development/group_vars/versions\\.yml$"],
-      "matchStrings": [
-        "node_versions:\\s*-\\s*\"(?<currentValue>.*?)\""
-      ],
+      "customType": "regex",
+      "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
+      "matchStrings": ["node_versions:\\s*-\\s*\"(?<currentValue>.*?)\""],
       "datasourceTemplate": "node-version",
       "depNameTemplate": "node",
       "versioningTemplate": "node"
     }
   ],
+  "pre-commit": {
+    "enabled": true
+  },
   "ansible": {
     "enabled": true,
-    "fileMatch": [
-      "(^|/)requirements\\.ya?ml$",
-      "(^|/)galaxy\\.ya?ml$"
-    ]
-  },
-  "docker": {
-    "enabled": true,
-    "fileMatch": [
-      "^tests/docker-compose\\.yml$",
-      "^tests/Dockerfile$"
-    ]
+    "managerFilePatterns": ["/(^|/)ansible/requirements\\.ya?ml$/", "/(^|/)ansible/galaxy\\.ya?ml$/"]
   }
 }

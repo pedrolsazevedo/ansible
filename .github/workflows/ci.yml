@@ -4,13 +4,22 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'ansible/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'ansible/**'
+      - '.github/workflows/ci.yml'
 
 jobs:
   test:
-    name: Test on Ubuntu 24.04
+    name: Test Ansible
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible
 
     steps:
       - name: Checkout code
@@ -28,6 +37,9 @@ jobs:
 
       - name: Run syntax check
         run: ./setup.py test --syntax
+
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.1
 
       - name: Run Docker-based tests
         run: ./setup.py test --docker

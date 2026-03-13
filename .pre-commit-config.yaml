@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]
+        exclude: ^kubernetes/
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        files: ^oci/build/Dockerfile.*
+        args: [--config=oci/.hadolint.yaml]
+
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.3.0
+    hooks:
+      - id: ansible-lint
+        files: ^ansible/.*\.(yaml|yml)$
+        args: [--project-dir=ansible, --config-file=ansible/.ansible-lint]
+        additional_dependencies: []
+        pass_filenames: false
+        language_version: python3
+        entry: bash -c 'ANSIBLE_ROLES_PATH=ansible/roles ansible-lint --project-dir=ansible --config-file=ansible/.ansible-lint'

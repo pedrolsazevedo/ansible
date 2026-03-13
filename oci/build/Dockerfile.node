@@ -1,0 +1,19 @@
+FROM node:alpine
+
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    curl \
+    git \
+    vim \
+    wget \
+    unzip \
+    gnupg \
+    bind-tools \
+    whois \
+    openssl \
+    bash \
+    build-base \
+    helm \
+    kubectl
+
+CMD [ "bash" ]

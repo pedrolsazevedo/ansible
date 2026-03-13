@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-local-image
+spec:
+  containers:
+    - name: app
+      image: kind-registry:5000/library/debian:local
+      imagePullPolicy: Always
+      command: ["sleep", "3600"]
+      tty: true
+      stdin: true

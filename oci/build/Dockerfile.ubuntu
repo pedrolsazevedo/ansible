@@ -1,0 +1,32 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    curl \
+    git \
+    vim \
+    wget \
+    unzip \
+    gpg \
+    dnsutils \
+    whois \
+    openssl \
+    build-essential \
+    sudo
+
+RUN useradd -m -s /bin/bash linuxbrew && echo 'linuxbrew ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER linuxbrew
+WORKDIR /home/linuxbrew
+
+RUN /bin/bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
+RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+RUN /home/linuxbrew/.linuxbrew/bin/brew install helm kubectl k9s mise kubelogin
+
+RUN echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+RUN /home/linuxbrew/.linuxbrew/bin/mise use -g -y terraform@latest terragrunt@latest
+
+USER root
+
+CMD [ "bash" ]
