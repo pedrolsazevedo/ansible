@@ -1,4 +1,4 @@
-FROM oraclelinux:10@sha256:52f0a59393f919916824ad4a2991263502e5c35de772a81c284e9bb0e2edc62e
+FROM oraclelinux:10@sha256:49fd6c2f84b01823e4730a3ba654708d69e730f92e859da58d982be37263b34f
 
 RUN dnf update -y && \
     dnf install -y \
