@@ -1,29 +1,23 @@
-FROM redhat/ubi9:latest@sha256:9e6e193bfc3596a84d2a32f42d6b1552398ec9735b9a4e893a0fc3c6fbccb381
+ARG BASE_IMAGE=redhat/ubi9:latest@sha256:9e6e193bfc3596a84d2a32f42d6b1552398ec9735b9a4e893a0fc3c6fbccb381
+FROM ${BASE_IMAGE}
 
 RUN dnf update -y && \
     dnf install -y \
+    curl \
     git \
     vim \
     wget \
     unzip \
+    gnupg2 \
     bind-utils \
+    whois \
+    openssl \
     gcc \
     gcc-c++ \
     make \
     sudo
 
-RUN useradd -m -s /bin/bash linuxbrew && echo 'linuxbrew ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER linuxbrew
-WORKDIR /home/linuxbrew
-
-RUN /bin/bash -c "NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-ENV PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
-RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-RUN /home/linuxbrew/.linuxbrew/bin/brew install helm kubectl k9s mise kubelogin
-
-RUN echo 'eval "$(mise activate bash)"' >> ~/.bashrc
-RUN /home/linuxbrew/.linuxbrew/bin/mise use -g -y terraform@latest terragrunt@latest
-
-USER root
+COPY build/scripts/setup-homebrew.sh /tmp/setup-homebrew.sh
+RUN /tmp/setup-homebrew.sh && rm /tmp/setup-homebrew.sh
 
 CMD [ "bash" ]

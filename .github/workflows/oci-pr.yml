@@ -8,16 +8,40 @@ on:
       - '.github/workflows/oci-pr.yml'
 
 jobs:
-  test_build:
+  validate:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: oci
-    strategy:
-      matrix:
-        image: [alpine, ubuntu, ubi, suse, node, oraclelinux, openssl]
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Test build ${{ matrix.image }}
-        run: make test IMAGE=${{ matrix.image }}
+
+      - name: Install bats
+        run: sudo apt-get install -y bats
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run bake configuration tests
+        run: bats tests/test_bake.bats
+
+  test_build:
+    needs: validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oci
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test build all images (amd64 only)
+        uses: docker/bake-action@v6
+        with:
+          workdir: oci
+          targets: all
+          set: |
+            *.platform=linux/amd64
+          load: true
