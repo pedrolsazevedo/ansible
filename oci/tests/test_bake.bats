@@ -131,9 +131,8 @@ setup() {
     done
 }
 
-@test "UBI has curl whois openssl packages" {
+@test "UBI has curl openssl packages" {
     grep -q "curl" build/Dockerfile.ubi
-    grep -q "whois" build/Dockerfile.ubi
     grep -q "openssl" build/Dockerfile.ubi
 }
 

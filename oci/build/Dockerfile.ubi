@@ -2,7 +2,7 @@ ARG BASE_IMAGE=redhat/ubi9:latest@sha256:9e6e193bfc3596a84d2a32f42d6b1552398ec97
 FROM ${BASE_IMAGE}
 
 RUN dnf update -y && \
-    dnf install -y \
+    dnf install -y --allowerasing \
     curl \
     git \
     vim \
@@ -10,7 +10,6 @@ RUN dnf update -y && \
     unzip \
     gnupg2 \
     bind-utils \
-    whois \
     openssl \
     gcc \
     gcc-c++ \
