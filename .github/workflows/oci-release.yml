@@ -63,6 +63,7 @@ jobs:
         uses: docker/bake-action@v6
         with:
           workdir: oci
+          source: .
           targets: all
           push: true
         env:

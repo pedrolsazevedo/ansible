@@ -7,6 +7,7 @@ VERSION ?= latest
 ALPINE_VERSION ?= latest
 OPENSSL_VERSION ?=
 
+PLATFORM ?= linux/$(shell uname -m | sed s/x86_64/amd64/ | sed s/aarch64/arm64/)
 IMAGES := alpine ubuntu ubi suse node oraclelinux openssl
 
 export DOCKER_USER VERSION ALPINE_VERSION OPENSSL_VERSION
@@ -44,16 +45,16 @@ help:
 
 build:
 	@test -n "$(IMAGE)" || (echo "ERROR: IMAGE required (e.g., make build IMAGE=alpine)" && exit 1)
-	docker buildx bake $(IMAGE) --load
+	docker buildx bake $(IMAGE) --set '*.platform=$(PLATFORM)' --load
 
 build-all:
-	docker buildx bake all --load
+	docker buildx bake all --set '*.platform=$(PLATFORM)' --load
 
 build-alpine:
-	docker buildx bake alpine-family --load
+	docker buildx bake alpine-family --set '*.platform=$(PLATFORM)' --load
 
 build-brew:
-	docker buildx bake homebrew-family --load
+	docker buildx bake homebrew-family --set '*.platform=$(PLATFORM)' --load
 
 push:
 	@test -n "$(IMAGE)" || (echo "ERROR: IMAGE required" && exit 1)
@@ -64,10 +65,10 @@ push-all:
 
 test:
 	@test -n "$(IMAGE)" || (echo "ERROR: IMAGE required" && exit 1)
-	docker buildx bake $(IMAGE) --set '*.platform=linux/amd64' --load
+	docker buildx bake $(IMAGE) --set '*.platform=$(PLATFORM)' --load
 
 test-all:
-	docker buildx bake all --set '*.platform=linux/amd64' --load
+	docker buildx bake all --set '*.platform=$(PLATFORM)' --load
 
 run:
 	@test -n "$(IMAGE)" || (echo "ERROR: IMAGE required" && exit 1)
