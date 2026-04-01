@@ -17,8 +17,15 @@ repos:
         files: ^oci/build/Dockerfile.*
         args: [--config=oci/.hadolint.yaml]
 
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.3
+    hooks:
+      - id: terraform_fmt
+        name: hcl-format
+        files: ^oci/.*\.hcl$
+
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.3.0
+    rev: v26.4.0
     hooks:
       - id: ansible-lint
         files: ^ansible/.*\.(yaml|yml)$

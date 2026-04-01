@@ -43,9 +43,6 @@ jobs:
     defaults:
       run:
         working-directory: oci
-    strategy:
-      matrix:
-        image: [alpine, ubuntu, ubi, suse, node, oraclelinux, openssl]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,7 +59,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push ${{ matrix.image }}
-        run: make push IMAGE=${{ matrix.image }} VERSION=${{ needs.bump_version.outputs.bump_version }}
+      - name: Build and push all images
+        uses: docker/bake-action@v6
+        with:
+          workdir: oci
+          source: .
+          targets: all
+          push: true
         env:
           DOCKER_USER: ${{ env.DOCKER_USER }}
+          VERSION: ${{ needs.bump_version.outputs.bump_version }}

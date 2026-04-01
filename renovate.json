@@ -42,13 +42,30 @@
     },
     {
       "description": "OCI base image updates",
-      "matchFileNames": ["oci/build/**"],
+      "matchFileNames": ["oci/build/**", "oci/docker-bake.hcl"],
       "matchCategories": ["docker"],
+      "groupName": "oci-base-images",
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Group pre-commit hook updates",
+      "matchManagers": ["pre-commit"],
+      "groupName": "pre-commit-hooks"
     }
   ],
   "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^oci/docker-bake\\.hcl$/"],
+      "matchStrings": ["BASE_IMAGE\\s*=\\s*\"(?<depName>[^:]+):(?<currentValue>[^@]+)@(?<currentDigest>sha256:[a-f0-9]+)\""],
+      "datasourceTemplate": "docker"
+    },
     {
       "customType": "regex",
       "managerFilePatterns": ["/^ansible/vars/versions\\.yml$/"],
