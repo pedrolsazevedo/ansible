@@ -1,3 +1,10 @@
+## 0.4.0 (2026-04-01)
+
+### Feat
+
+- **oci**: migrate to Docker Bake with shared Dockerfiles and CI improvements
+- Refator Container Images process
+
 ## 0.3.0 (2026-03-13)
 
 ### Feat
