@@ -12,7 +12,7 @@ node_versions:
   - "20.20.1"
 
 # Container Tools
-kubectl_version: "v1.35.2"
+kubectl_version: "v1.35.3"
 kind_version: "v0.31.0"
 rancher_desktop_version: "1.22.0"
 
